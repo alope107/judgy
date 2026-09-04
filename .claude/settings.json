@@ -16,14 +16,6 @@
       "Bash(git stash*)",
       "Bash(git fetch*)",
       "Bash(git pull*)"
-    ],
-    "deny": [
-      "Edit(//workspace/.claude/**)",
-      "Edit(//workspace/.github/workflows/**)",
-      "Edit(//workspace/.github/CODEOWNERS)",
-      "Edit(//workspace/CLAUDE.md)",
-      "Edit(//workspace/.mcp.json)",
-      "Bash(git push --force*)"
     ]
   }
 }

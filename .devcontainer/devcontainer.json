@@ -5,12 +5,35 @@
     "dockerfile": "Dockerfile"
   },
 
-  // Docker Desktop's linuxkit kernel blocks unshare(CLONE_NEWUSER) via the
-  // default seccomp profile, so bubblewrap cannot create a namespace and the
-  // sandbox fails to start. With failIfUnavailable + allowUnsandboxedCommands
-  // false that is a hard fail: every Bash command dies. Relaxing seccomp
-  // restores the agent's own sandbox, which is what enforces the boundary.
-  "runArgs": ["--security-opt", "seccomp=unconfined"],
+  // Docker-in-Docker: a dockerd of our own inside this container, NOT the
+  // host's daemon. Deliberately not docker-outside-of-docker (bind-mounting
+  // /var/run/docker.sock): that daemon runs as host root and would let anything
+  // in here mount arbitrary host paths, which defeats the "mount ONLY this
+  // repo" rule below. Nested containers can only see what we hand them.
+  //
+  // This is what `docker compose up -d` (PostgreSQL, per CLAUDE.md) needs.
+  //
+  // Cost, stated plainly: the feature declares `privileged: true`, so the OUTER
+  // container now runs with all capabilities and an unconfined seccomp profile.
+  // That supersedes the note this comment replaced, which said seccomp was back
+  // to Docker's default now that bubblewrap was gone — a nested engine needs
+  // the same syscalls the sandbox did, and then some.
+  //
+  // Pinned to an exact feature version, matching how npm deps are pinned.
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:4.1.0": {
+      "moby": true,
+      "dockerDashComposeVersion": "latest"
+    }
+  },
+
+  // The feature installs /usr/local/share/docker-init.sh as the entrypoint;
+  // that script starts dockerd, and starts it via `sudo` when it is not already
+  // root. The Dockerfile ends with `USER node` and installs no sudo, so without
+  // this the daemon would fail to start and every `docker` call would report a
+  // dead socket. containerUser only sets who runs the entrypoint — remoteUser
+  // below is still `node`, so the shell, Claude, and postCreate are unchanged.
+  "containerUser": "root",
 
   // Mount ONLY this repo. Never open the parent directory in this container.
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
