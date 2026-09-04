@@ -1,0 +1,28 @@
+node_modules/
+generated/
+.keystone/
+
+# Keystone owns these; reformatting them would fight `keystone build`, which regenerates
+# them byte-for-byte and validates the result against what is on disk.
+src/keystone/schema.prisma
+src/keystone/schema.graphql
+src/keystone/types.ts
+src/keystone/migrations/
+
+# ADR-0006: the vendored binding stays byte-comparable with upstream. Never format it.
+src/vendor/
+
+# docs/Decisions.md is append-only (CLAUDE.md) — reformatting it counts as editing it in
+# place. CLAUDE.md and Bootstrap.md are the project's own instructions and are likewise
+# not ours to reflow. Prettier does rewrite all three if allowed to.
+CLAUDE.md
+docs/
+
+# Environment and CI configuration that predates this task. Prettier does reformat these
+# (mostly adding a trailing newline); reflowing them is not this project's business.
+.claude/
+.devcontainer/
+.github/
+.vscode/
+
+
