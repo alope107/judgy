@@ -7,8 +7,9 @@
     "node": ">=24.20.0 <25"
   },
   "scripts": {
-    "check": "npm run typecheck && npm run format:check && npm run test",
+    "check": "npm run typecheck && npm run lint && npm run format:check && npm run test",
     "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
     "format:check": "prettier --check .",
     "format": "prettier --write .",
     "test": "vitest run",
@@ -33,14 +34,21 @@
     "react-dom": "19.0.8",
     "react-stately": "3.48.0"
   },
+  "overrides": {
+    "deepmerge-ts": "8.0.2",
+    "mysql2": "3.24.3"
+  },
   "devDependencies": {
+    "@eslint/js": "10.0.1",
     "@types/node": "26.4.1",
     "@types/pg": "8.23.1",
     "@types/react": "19.0.10",
     "@types/react-dom": "19.0.4",
     "dotenv": "17.4.2",
+    "eslint": "10.10.0",
     "prettier": "3.9.6",
-    "typescript": "7.0.2",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.69.0",
     "vitest": "5.0.0"
   }
 }
