@@ -71,16 +71,21 @@ docker compose up -d   # PostgreSQL
 `npm run check` is the definition of done. Not "the file I touched compiles."
 
 `npm run check` regenerates the Prisma client first. It has to: `src/keystone/types.ts` is
-committed and imports the generated client out of `generated/`, which is gitignored. There
-is also a `postinstall` script that does the same thing, but do not rely on it — **this
-devcontainer sets `ignore-scripts=true` in `~/.npmrc`**, so npm lifecycle scripts never
-run here. That is a supply-chain guard worth keeping; the cost is that anything load-bearing
-has to be an explicit step in a script body rather than a lifecycle hook.
+committed and imports the generated client out of `generated/`, which is gitignored, so a
+clean clone has the import but not its target until something generates it.
+
+There is deliberately **no `postinstall` script**. **This environment sets
+`ignore-scripts=true` in `~/.npmrc`**, so npm lifecycle scripts never run — a `postinstall`
+here is a step that looks present and does nothing, which is worse than not having one.
+Keep the guard; put load-bearing work in a script body where it runs or fails visibly. Note
+that ADR-0005 assumes a postinstall step to copy Monaco into `web/public/vs/`; when that
+lands it needs to be an explicit step for the same reason.
 
 `npm run dev` applies migrations before starting. `--no-db-push` deliberately never
 touches the schema (ADR-0002), so without the migrate step a fresh clone starts against a
-database with no tables. No `.env` is required locally; the connection string falls back to
-the throwaway credential in `docker-compose.yml`.
+database with no tables. No `.env` is required locally: the connection string falls back to
+the throwaway credential in `docker-compose.yml`, and **says so on stderr** when it does.
+Outside development a missing `DATABASE_URL` throws rather than falling back.
 
 TypeScript runs in strict mode. Keystone generates types from the list schema — use them.
 Do not add `any`, `@ts-ignore`, or `@ts-expect-error` to get past a type error; the type
@@ -94,6 +99,34 @@ step. Revisit when that changes.
 Exception: `src/vendor/y-monaco/` is JavaScript with JSDoc, kept as `.js` so it stays
 diffable against upstream. `tsconfig` sets `allowJs: true` and excludes that directory from
 `checkJs`. Do not convert it to TypeScript.
+
+## Failures must be noisy
+
+**We always want failure to be loud.** A failure that does not announce itself is worse
+than a crash: it passes review, ships, and surfaces later as corrupted data — and in this
+project the corrupted thing is a student's keystroke history, which cannot be regenerated.
+Anything that cannot do its job must say so and stop.
+
+- **No silent fallbacks.** If a required input is missing, fail with a message naming what
+  was missing and what was expected. A default that quietly stands in for real
+  configuration hides the misconfiguration until it is expensive. Where a convenience
+  default genuinely is correct — local development with no `.env` — it must announce
+  itself, and it must not apply in production.
+- **No swallowed errors.** No empty `catch`, no `catch` that logs and continues as though
+  nothing happened, no `|| true`, no `2>/dev/null` on a command whose failure matters. If
+  you catch, either handle it meaningfully or rethrow with context.
+- **No test that cannot fail.** If you cannot name the change that would turn an assertion
+  red, it is decoration: delete it or make it real. Serialising an object and asserting on
+  the string is a common way to write one by accident — closures and functions render as
+  placeholders and the value you meant to check is not in there at all.
+- **Nothing load-bearing anywhere skippable.** npm lifecycle scripts are skipped entirely
+  in this environment (see Environment), so they are not a place to put required work.
+- **Prefer a loud crash at startup to a degraded mode.** One process holds all live
+  document state (ADR-0008). A half-working server that accepts edits it cannot persist is
+  worse than a dead one, because the client believes it is connected.
+
+This is why the prohibition on weakening tests is absolute: a retry, a sleep, or a relaxed
+assertion converts a real failure into a silent one.
 
 ## Task protocol
 
@@ -123,6 +156,8 @@ down at the end of the report instead.
 - **Never use real student code, submissions, or names** in fixtures, tests, or seed data.
   Generate synthetic Java. Prior-term submissions are education records.
 - **Never introduce SQLite**, including as a "faster test database."
+- **Never make a failure quiet.** No silent fallback for missing configuration, no
+  swallowed exception, no assertion that cannot fail. See "Failures must be noisy".
 - **Never edit `docs/DECISIONS.md` in place.** It is append-only. Propose a new entry that
   supersedes an old one.
 - Do not commit `.env`, secrets, or connection strings.
