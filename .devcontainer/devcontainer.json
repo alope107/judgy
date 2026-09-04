@@ -35,6 +35,42 @@
   // below is still `node`, so the shell, Claude, and postCreate are unchanged.
   "containerUser": "root",
 
+  // Chromium uses shared memory for renderer surfaces. Docker gives a container
+  // 64 MB of /dev/shm, and past that Chromium kills renderers — surfacing as a
+  // tab that dies mid-run rather than as an error, which is the silent failure
+  // mode CLAUDE.md forbids. The Task 1 fuzz harness drives two live Monaco
+  // editors at once, so it will get there.
+  //
+  // The two flags do NOT compose. --ipc=host replaces the container's IPC
+  // namespace with the host's, so /dev/shm becomes the host's and --shm-size,
+  // which sizes a namespace we no longer have, is ignored. Measured in this
+  // container rather than assumed, `df -h /dev/shm` in each case:
+  //
+  //   neither            64M    Docker's default — the size that kills renderers
+  //   --shm-size=1g only 1.0G
+  //   --ipc=host only    3.8G   the host's /dev/shm
+  //   both               3.8G   --shm-size had no effect
+  //
+  // --ipc=host is the one doing the work, and it is what Playwright's docs
+  // actually recommend, in those words: "Without it, Chromium can run out of
+  // memory and crash." They do not mention --shm-size at all.
+  //
+  // --shm-size=1g is kept deliberately, as inert-but-correct fallback: it costs
+  // nothing while --ipc=host is present, and if --ipc=host is ever removed for
+  // the isolation reason below, it is what stops /dev/shm reverting to 64 MB and
+  // reintroducing the silent renderer death. Do not delete it as dead config
+  // without also confirming what /dev/shm ends up as.
+  //
+  // --ipc=host shares the host's IPC namespace, which is a real reduction in
+  // isolation and worth naming given how carefully the rest of this file avoids
+  // the host. The docker-in-docker feature below already declares
+  // `privileged: true`, so the marginal loss here is small — but if that ever
+  // changes, revisit this line rather than assuming it is free.
+  //
+  // Not used: --disable-dev-shm-usage. It redirects shared memory to /tmp and
+  // so changes what the harness is actually exercising.
+  "runArgs": ["--shm-size=1g", "--ipc=host"],
+
   // Mount ONLY this repo. Never open the parent directory in this container.
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
   "workspaceFolder": "/workspace",
