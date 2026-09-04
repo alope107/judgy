@@ -8,7 +8,8 @@
   },
   "scripts": {
     "postinstall": "keystone postinstall",
-    "check": "npm run typecheck && npm run lint && npm run format:check && npm run test",
+    "generate": "keystone postinstall",
+    "check": "npm run generate && npm run typecheck && npm run lint && npm run format:check && npm run test",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "format:check": "prettier --check .",

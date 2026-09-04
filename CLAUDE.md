@@ -58,9 +58,8 @@ Do not upgrade pinned versions as part of an unrelated task.
 ## Commands
 
 ```
-npm run check     # typecheck + lint + format:check + test — this is what "green" means
-                  # needs `npm install` to have run: postinstall generates the Prisma
-                  # client into generated/, which is gitignored and which types.ts imports
+npm run check     # generate + typecheck + lint + format:check + test — this is "green"
+npm run generate  # regenerate the Prisma client and validate the committed schemas
 npm run dev       # Keystone dev server (Admin UI + GraphQL + WebSocket upgrade)
                   # runs `prisma migrate deploy && keystone dev --no-db-push`
 npm run dev:web   # Vite dev server for the student editor        (not yet — Task 1+)
@@ -70,6 +69,13 @@ docker compose up -d   # PostgreSQL
 ```
 
 `npm run check` is the definition of done. Not "the file I touched compiles."
+
+`npm run check` regenerates the Prisma client first. It has to: `src/keystone/types.ts` is
+committed and imports the generated client out of `generated/`, which is gitignored. There
+is also a `postinstall` script that does the same thing, but do not rely on it — **this
+devcontainer sets `ignore-scripts=true` in `~/.npmrc`**, so npm lifecycle scripts never
+run here. That is a supply-chain guard worth keeping; the cost is that anything load-bearing
+has to be an explicit step in a script body rather than a lifecycle hook.
 
 `npm run dev` applies migrations before starting. `--no-db-push` deliberately never
 touches the schema (ADR-0002), so without the migrate step a fresh clone starts against a
