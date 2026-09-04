@@ -11,19 +11,28 @@ actually been run.
 
 ```
 docker compose up -d    # PostgreSQL
+cp .env.example .env    # required — populate with your database connection details
 npm install
-cp .env.example .env    # populate with your database connection details
 npm run dev             # applies migrations, then Keystone at http://localhost:3000
 ```
 
-`npm run check` (typecheck + format + test) is the definition of green.
+The `.env` step is required. A missing `DATABASE_URL` fails to start rather than falling
+back to a default, in every environment.
+
+`npm run check` (generate + typecheck + lint + format:check + test) is the definition of
+green.
 
 ## Verified version set
 
 Everything below was installed and run together on 2026-09-04: Postgres started, migrations
 applied, `keystone dev` came up, the Admin UI served, and a list created and read back
-through GraphQL — from a clean clone. Package versions are pinned exactly, not by range;
-per `CLAUDE.md`, do not bump them as part of an unrelated task.
+through GraphQL — from a clean clone.
+
+**These versions are provisional.** The project is still in stack formation: pins exist so
+that a given checkout is reproducible, not because any choice is settled. Changing one
+deliberately, with a reason and a green `npm run check`, is normal work right now. Drifting
+one incidentally is not. A later task freezes the whole set before any real student data
+exists — see "Versions are provisional" in `CLAUDE.md`.
 
 |                                |                                    |
 | ------------------------------ | ---------------------------------- |
