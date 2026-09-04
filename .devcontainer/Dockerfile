@@ -11,7 +11,11 @@ ARG GIT_USER_EMAIL="9411388+alope107@users.noreply.github.com"
 ENV DEBIAN_FRONTEND=noninteractive
 
 # bubblewrap and socat are gone with the sandbox; they had no other consumer.
-# No sudo, no iptables: the container still has no privileged path at all.
+# Still no sudo here. iptables IS present now, but not from this file: the
+# docker-in-docker feature in devcontainer.json installs it, along with the
+# engine, for the nested daemon's bridge networking. That feature also makes
+# the container privileged, so the "no privileged path at all" this comment
+# used to claim no longer holds — see the note in devcontainer.json.
 RUN apt-get update && apt-get install -y --no-install-recommends \
       ca-certificates curl git ripgrep jq less procps \
     && rm -rf /var/lib/apt/lists/*
