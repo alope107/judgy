@@ -2,8 +2,8 @@
 
 A collaborative browser-based code editor for a college CS course. Students write Java.
 
-Start with [`CLAUDE.md`](CLAUDE.md), then [`docs/Decisions.md`](docs/Decisions.md) (the
-append-only architecture decision log) and [`docs/Bootstrap.md`](docs/Bootstrap.md) (the
+Start with [`CLAUDE.md`](CLAUDE.md), then [`docs/DECISIONS.md`](docs/DECISIONS.md) (the
+append-only architecture decision log) and [`docs/BOOTSTRAP.md`](docs/BOOTSTRAP.md) (the
 ordered task list). Those three files are authoritative; this README only records what has
 actually been run.
 
@@ -41,15 +41,26 @@ per `CLAUDE.md`, do not bump them as part of an unrelated task.
 | `@prisma/adapter-pg`           | 7.10.0                            |
 | `pg`                           | 8.23.0                            |
 | `graphql`                      | 16.14.2                           |
-| `typescript`                   | 7.0.2                             |
+| `typescript`                   | 5.9.3                             |
+| `eslint` / `typescript-eslint` | 10.10.0 / 8.69.0                  |
 | `vitest`                       | 5.0.0                             |
 | `prettier`                     | 3.9.6                             |
 | `dotenv`                       | 17.4.2                            |
 
-`react-aria`, `react-stately` and `@prisma/adapter-pg` are not listed in the `CLAUDE.md`
-pre-approved set. The first two are exact-version peer dependencies of `@keystone-6/core`
-8.1.0; the third is required because Prisma 7 cannot connect without a driver adapter. See
-the Task 0 report.
+`CLAUDE.md`'s pre-approved dependency list has been updated to cover `react-aria`,
+`react-stately`, `@prisma/adapter-pg`, `typescript-eslint` and `@eslint/js`. The first two
+are exact-version peer dependencies of `@keystone-6/core` 8.1.0; the third is required
+because Prisma 7 cannot connect without a driver adapter.
+
+TypeScript stays on 5.x deliberately: `typescript-eslint` peers `typescript <6.1.0`, so
+moving to 7.x costs the entire lint step.
+
+### Known vulnerabilities
+
+`npm audit` reports 3 high-severity advisories, all from `image-size` reached through
+`@keystone-6/core`. Every published version is affected and there is no fix. Two other
+advisories (`deepmerge-ts`, `mysql2`, both via Prisma) are resolved by `overrides` in
+`package.json`; drop those once Prisma's own ranges catch up.
 
 ### Two things that will bite you
 
