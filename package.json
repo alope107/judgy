@@ -1,0 +1,55 @@
+{
+  "name": "judgy",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Collaborative browser-based code editor for a college CS course",
+  "engines": {
+    "node": ">=24.20.0 <25"
+  },
+  "scripts": {
+    "generate": "keystone postinstall",
+    "check": "npm run generate && npm run typecheck && npm run lint && npm run format:check && npm run test",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "format:check": "prettier --check .",
+    "format": "prettier --write .",
+    "test": "vitest run",
+    "dev": "prisma migrate deploy && keystone dev --no-db-push",
+    "build": "keystone build",
+    "start": "keystone start",
+    "migrate:dev": "prisma migrate dev",
+    "migrate:deploy": "prisma migrate deploy"
+  },
+  "dependencies": {
+    "@keystar/ui": "0.10.0",
+    "@keystone-6/auth": "10.0.5",
+    "@keystone-6/core": "8.1.0",
+    "@prisma/adapter-pg": "7.10.0",
+    "@prisma/client": "7.10.0",
+    "graphql": "16.14.2",
+    "next": "16.3.4",
+    "pg": "8.23.0",
+    "prisma": "7.10.0",
+    "react": "19.0.8",
+    "react-aria": "3.50.0",
+    "react-dom": "19.0.8",
+    "react-stately": "3.48.0"
+  },
+  "overrides": {
+    "deepmerge-ts": "8.0.2",
+    "mysql2": "3.24.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/node": "26.4.1",
+    "@types/pg": "8.23.1",
+    "@types/react": "19.0.10",
+    "@types/react-dom": "19.0.4",
+    "dotenv": "17.4.2",
+    "eslint": "10.10.0",
+    "prettier": "3.9.6",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.69.0",
+    "vitest": "5.0.0"
+  }
+}
