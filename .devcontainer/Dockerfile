@@ -6,9 +6,6 @@ ARG CLAUDE_CODE_VERSION=2.1.260
 ARG SANDBOX_RUNTIME_VERSION=0.0.75
 ARG PNPM_VERSION=11.25.0
 
-# Replace with your own. The noreply address is safe to commit to a public
-# repo and links commits to your GitHub account; find yours at
-# https://github.com/settings/emails
 ARG GIT_USER_NAME="Auberon López (agent)"
 ARG GIT_USER_EMAIL="9411388+alope107@users.noreply.github.com"
 
@@ -42,14 +39,16 @@ ENV CLAUDE_CONFIG_DIR=/home/node/.claude \
 USER node
 WORKDIR /workspace
 
+# NOTE: credential.helper is deliberately NOT set here. VS Code overwrites
+# --global on every attach, so a helper baked into the image is dead on
+# arrival. It lives in .git/config instead (repo-local, read last, and on
+# the bind mount so it survives rebuilds). See the setup commands in the
+# repo README.
+#
 # safe.directory: the bind-mounted repo is owned by your host uid, not node's.
 # user.name/email: a distinct name so container commits are legible in git log.
-# credential.helper: reads GH_TOKEN from the environment at push time. The
-#   token is never written to a file — not here, not in .git/config.
 # .npmrc ignore-scripts: matches pnpm's default posture in case npm gets used.
 RUN git config --global --add safe.directory /workspace \
     && git config --global user.name "${GIT_USER_NAME}" \
     && git config --global user.email "${GIT_USER_EMAIL}" \
-    && git config --global credential.helper \
-       '!f() { echo "username=x-access-token"; echo "password=${GH_TOKEN}"; }; f' \
     && printf 'ignore-scripts=true\n' > /home/node/.npmrc
