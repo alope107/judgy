@@ -59,6 +59,8 @@ Do not upgrade pinned versions as part of an unrelated task.
 
 ```
 npm run check     # typecheck + lint + format:check + test — this is what "green" means
+                  # needs `npm install` to have run: postinstall generates the Prisma
+                  # client into generated/, which is gitignored and which types.ts imports
 npm run dev       # Keystone dev server (Admin UI + GraphQL + WebSocket upgrade)
                   # runs `prisma migrate deploy && keystone dev --no-db-push`
 npm run dev:web   # Vite dev server for the student editor        (not yet — Task 1+)
