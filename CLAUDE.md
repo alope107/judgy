@@ -46,25 +46,42 @@ violated by accident.
 - Package versions are pinned exactly, not by range. Keystone's peer dependencies are
   strict; a floating install produces errors that look like application bugs but are not.
   If an install fails, suspect version drift before suspecting the code.
+- `overrides` in `package.json` force patched versions of transitive dependencies that a
+  parent pins to a vulnerable range (currently `deepmerge-ts` and `mysql2`, both reached
+  through Prisma). Re-check them at every Prisma bump and remove each one as soon as the
+  parent catches up — an override that outlives its advisory silently holds back a
+  dependency for no reason. `npm audit` is the check; it should report only `image-size`,
+  which has no fixed version at any release.
 
 Do not upgrade pinned versions as part of an unrelated task.
 
 ## Commands
 
 ```
-npm run check     # typecheck + lint + test — this is what "green" means
+npm run check     # typecheck + lint + format:check + test — this is what "green" means
 npm run dev       # Keystone dev server (Admin UI + GraphQL + WebSocket upgrade)
-                  # once migrations are committed this runs `keystone dev --no-db-push`
-npm run dev:web   # Vite dev server for the student editor
+                  # runs `prisma migrate deploy && keystone dev --no-db-push`
+npm run dev:web   # Vite dev server for the student editor        (not yet — Task 1+)
 npm run fuzz      # convergence fuzz harness; --seed N to reproduce a specific run
+                  #                                                (not yet — Task 1)
 docker compose up -d   # PostgreSQL
 ```
 
 `npm run check` is the definition of done. Not "the file I touched compiles."
 
+`npm run dev` applies migrations before starting. `--no-db-push` deliberately never
+touches the schema (ADR-0002), so without the migrate step a fresh clone starts against a
+database with no tables. No `.env` is required locally; the connection string falls back to
+the throwaway credential in `docker-compose.yml`.
+
 TypeScript runs in strict mode. Keystone generates types from the list schema — use them.
 Do not add `any`, `@ts-ignore`, or `@ts-expect-error` to get past a type error; the type
-error is usually correct.
+error is usually correct. ESLint enforces all three, so this fails `npm run check` rather
+than relying on review to catch it.
+
+TypeScript is pinned to the 5.x line, not 7.x. `typescript-eslint` peers `typescript <6.1.0`
+and nothing in the lint ecosystem supports 7 yet, so TypeScript 7 costs the entire lint
+step. Revisit when that changes.
 
 Exception: `src/vendor/y-monaco/` is JavaScript with JSDoc, kept as `.js` so it stays
 diffable against upstream. `tsconfig` sets `allowJs: true` and excludes that directory from
@@ -107,13 +124,26 @@ down at the end of the report instead.
 These may be installed without asking, at exact pinned versions:
 
 - Keystone and its required peers: `@keystone-6/core`, `@keystone-6/auth`, `next`, `react`,
-  `react-dom`, `prisma`, `@prisma/client`, `pg`, `graphql`, `@keystar/ui`
-- Collaboration: `yjs`, `y-protocols`, `lib0`, `y-websocket` (server side only), `ws`
+  `react-dom`, `prisma`, `@prisma/client`, `pg`, `graphql`, `@keystar/ui`, `react-aria`,
+  `react-stately`, `@prisma/adapter-pg`
+- Collaboration: `yjs`, `y-protocols`, `lib0`, `y-websocket` (client only — see below),
+  `ws`
 - Editor: `monaco-editor`, `@monaco-editor/react`, `@monaco-editor/loader`
 - Frontend: `vite`, `@vitejs/plugin-react`
 - Tooling: `typescript`, `vitest`, `@playwright/test`, `playwright`, `eslint`,
-  `prettier`, `@types/*` for anything above
+  `typescript-eslint`, `@eslint/js`, `prettier`, `@types/*` for anything above
 - Dev database tooling: `dotenv`
+
+Three notes on that list, all found by running things in Task 0:
+
+- `react-aria` and `react-stately` are peer dependencies of `@keystone-6/core` 8.1.0 at
+  **exact** versions. They are not optional and npm will not resolve without them.
+- `@prisma/adapter-pg` is not optional either. Prisma 7 removed `datasourceUrl` and
+  requires a driver adapter; the only alternative is Prisma's paid Accelerate service.
+- `y-websocket` 3.x ships **no server**. It has no `bin`, and the `y-websocket-server`
+  package on npm is an abandoned 2022 stub. ADR-0008 has us writing our own server via
+  `extendHttpServer` anyway, so nothing is blocked — but do not plan around a server that
+  does not exist.
 
 Anything else — including "small" utilities like lodash, date libraries, or alternative
 test runners — requires asking.
@@ -149,10 +179,22 @@ a documentation bug to report, not something to work around silently.
 ```
 docs/DECISIONS.md        append-only architecture decision log — read first
 docs/BOOTSTRAP.md        the ordered task list for initial work
+keystone.ts              Keystone entry point; re-exports src/keystone/config.ts
+prisma.config.ts         Prisma 7 CLI config — schema path, migrations path, datasource
 src/vendor/y-monaco/     vendored binding, .js, with LICENSE (see ADR-0006)
 src/keystone/            lists, access control, extendHttpServer wiring
+src/keystone/schema.prisma, schema.graphql, types.ts, migrations/
+                         generated by Keystone and committed; do not hand-edit
 src/collab/              Yjs WebSocket server, persistence, playback log
 web/                     Vite SPA — the student editor
 web/public/vs/           self-hosted Monaco, copied by postinstall (ADR-0005)
 test/fuzz/               convergence harness (Playwright)
+generated/               generated Prisma client — gitignored, rebuilt on every build
 ```
+
+Two root files are not negotiable. Keystone's CLI resolves its entry from `./keystone` at
+the project root with no override, so `keystone.ts` must live there; it is a one-line
+re-export and the real configuration is in `src/keystone/config.ts`. Prisma 7 requires
+`prisma.config.ts` at the root, and Keystone will scaffold a default one pointing at
+root-level paths if it is missing — ours points into `src/keystone/` instead, so that a
+schema change and its migration land next to the lists that produced them.
