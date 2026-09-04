@@ -1,0 +1,25 @@
+node_modules/
+
+# Secrets and connection strings — never committed (CLAUDE.md).
+.env
+.env.*
+!.env.example
+
+# Keystone build output and generated artifacts.
+.keystone/
+dist/
+*.tsbuildinfo
+
+# Generated Prisma client. Keystone points `generator client` here (see
+# src/keystone/schema.prisma); it is rebuilt by `keystone build` / `keystone dev`.
+# The Prisma *schema* and the migrations under src/keystone/ are committed.
+generated/
+
+# Vite / Playwright output (directories arrive in later bootstrap tasks).
+web/dist/
+web/public/vs/
+test-results/
+playwright-report/
+
+# The y-monaco spike from Task 0 lives outside the repo; this is belt and braces.
+spike/

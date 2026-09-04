@@ -1,0 +1,29 @@
+# Local development database only. Per ADR-0002 this project is PostgreSQL everywhere —
+# local, CI, and production — and never SQLite. Production Postgres lives on the app
+# droplet (ADR-0003), not here.
+services:
+  postgres:
+    image: postgres:18.4-alpine
+    container_name: judgy-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: judgy
+      POSTGRES_PASSWORD: judgy
+      POSTGRES_DB: judgy
+    ports:
+      # Published on localhost only. Nothing outside this machine should reach it.
+      - '127.0.0.1:5432:5432'
+    volumes:
+      # Postgres 18+ images store data in a major-version-specific subdirectory so
+      # `pg_upgrade --link` can work across a single mount point. The mount goes at
+      # /var/lib/postgresql, NOT the /var/lib/postgresql/data that every pre-18 recipe
+      # (and most tutorials) shows — that path refuses to start on 18.
+      - judgy-pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U judgy -d judgy']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  judgy-pgdata:
