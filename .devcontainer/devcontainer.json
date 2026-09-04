@@ -5,6 +5,13 @@
     "dockerfile": "Dockerfile"
   },
 
+  // Docker Desktop's linuxkit kernel blocks unshare(CLONE_NEWUSER) via the
+  // default seccomp profile, so bubblewrap cannot create a namespace and the
+  // sandbox fails to start. With failIfUnavailable + allowUnsandboxedCommands
+  // false that is a hard fail: every Bash command dies. Relaxing seccomp
+  // restores the agent's own sandbox, which is what enforces the boundary.
+  "runArgs": ["--security-opt", "seccomp=unconfined"],
+
   // Mount ONLY this repo. Never open the parent directory in this container.
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
   "workspaceFolder": "/workspace",
