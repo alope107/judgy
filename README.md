@@ -25,26 +25,26 @@ applied, `keystone dev` came up, the Admin UI served, and a list created and rea
 through GraphQL — from a clean clone. Package versions are pinned exactly, not by range;
 per `CLAUDE.md`, do not bump them as part of an unrelated task.
 
-|                                |                                   |
-| ------------------------------ | --------------------------------- |
-| Node                           | 24.20.0 (`.nvmrc`)                |
-| npm                            | 11.19.0                           |
-| PostgreSQL                     | 18.4 (`postgres:18.4-alpine`)     |
-| `@keystone-6/core`             | 8.1.0                             |
-| `@keystone-6/auth`             | 10.0.5 (installed, not yet wired) |
-| `@keystar/ui`                  | 0.10.0                            |
-| `next`                         | 16.3.4                            |
-| `react` / `react-dom`          | 19.0.8                            |
-| `react-aria` / `react-stately` | 3.50.0 / 3.48.0                   |
-| `prisma` / `@prisma/client`    | 7.10.0                            |
-| `@prisma/adapter-pg`           | 7.10.0                            |
-| `pg`                           | 8.23.0                            |
-| `graphql`                      | 16.14.2                           |
-| `typescript`                   | 5.9.3                             |
-| `eslint` / `typescript-eslint` | 10.10.0 / 8.69.0                  |
-| `vitest`                       | 5.0.0                             |
-| `prettier`                     | 3.9.6                             |
-| `dotenv`                       | 17.4.2                            |
+|                                |                                    |
+| ------------------------------ | ---------------------------------- |
+| Node                           | 24.18.1 (`.nvmrc`, from the image) |
+| npm                            | 11.16.0                            |
+| PostgreSQL                     | 18.4 (`postgres:18.4-alpine`)      |
+| `@keystone-6/core`             | 8.1.0                              |
+| `@keystone-6/auth`             | 10.0.5 (installed, not yet wired)  |
+| `@keystar/ui`                  | 0.10.0                             |
+| `next`                         | 16.3.4                             |
+| `react` / `react-dom`          | 19.0.8                             |
+| `react-aria` / `react-stately` | 3.50.0 / 3.48.0                    |
+| `prisma` / `@prisma/client`    | 7.10.0                             |
+| `@prisma/adapter-pg`           | 7.10.0                             |
+| `pg`                           | 8.23.0                             |
+| `graphql`                      | 16.14.2                            |
+| `typescript`                   | 5.9.3                              |
+| `eslint` / `typescript-eslint` | 10.10.0 / 8.69.0                   |
+| `vitest`                       | 5.0.0                              |
+| `prettier`                     | 3.9.6                              |
+| `dotenv`                       | 17.4.2                             |
 
 `CLAUDE.md`'s pre-approved dependency list has been updated to cover `react-aria`,
 `react-stately`, `@prisma/adapter-pg`, `typescript-eslint` and `@eslint/js`. The first two

@@ -42,6 +42,10 @@ violated by accident.
 ## Environment
 
 - Node: pinned in `.nvmrc` and `engines`. Use that version. Keystone 8 requires >= 20.19.
+  Node now comes from the devcontainer base image (Playwright's), not from a Node image we
+  choose, so bumping the Playwright version moves Node too — check `.nvmrc` and `engines`
+  when you bump it. `.devcontainer/verify-image.sh` asserts the major version only, since
+  the patch is upstream's to pick.
 - PostgreSQL: via `docker compose up -d`. There is no other supported database.
 - Package versions are pinned exactly, not by range. Keystone's peer dependencies are
   strict; a floating install produces errors that look like application bugs but are not.

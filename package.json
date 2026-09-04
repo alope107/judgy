@@ -4,7 +4,7 @@
   "private": true,
   "description": "Collaborative browser-based code editor for a college CS course",
   "engines": {
-    "node": ">=24.20.0 <25"
+    "node": ">=24.18.1 <25"
   },
   "scripts": {
     "generate": "keystone postinstall",
