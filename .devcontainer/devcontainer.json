@@ -41,11 +41,25 @@
   // mode CLAUDE.md forbids. The Task 1 fuzz harness drives two live Monaco
   // editors at once, so it will get there.
   //
-  // Both flags address this by different routes, and neither is redundant:
-  //   --shm-size=1g  raises the limit on the container's own /dev/shm.
-  //   --ipc=host     is what Playwright's docs actually recommend, in those
-  //                  words: "Without it, Chromium can run out of memory and
-  //                  crash." They do not mention --shm-size at all.
+  // The two flags do NOT compose. --ipc=host replaces the container's IPC
+  // namespace with the host's, so /dev/shm becomes the host's and --shm-size,
+  // which sizes a namespace we no longer have, is ignored. Measured in this
+  // container rather than assumed, `df -h /dev/shm` in each case:
+  //
+  //   neither            64M    Docker's default — the size that kills renderers
+  //   --shm-size=1g only 1.0G
+  //   --ipc=host only    3.8G   the host's /dev/shm
+  //   both               3.8G   --shm-size had no effect
+  //
+  // --ipc=host is the one doing the work, and it is what Playwright's docs
+  // actually recommend, in those words: "Without it, Chromium can run out of
+  // memory and crash." They do not mention --shm-size at all.
+  //
+  // --shm-size=1g is kept deliberately, as inert-but-correct fallback: it costs
+  // nothing while --ipc=host is present, and if --ipc=host is ever removed for
+  // the isolation reason below, it is what stops /dev/shm reverting to 64 MB and
+  // reintroducing the silent renderer death. Do not delete it as dead config
+  // without also confirming what /dev/shm ends up as.
   //
   // --ipc=host shares the host's IPC namespace, which is a real reduction in
   // isolation and worth naming given how carefully the rest of this file avoids
