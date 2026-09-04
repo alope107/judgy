@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm*)",
+      "Bash(node*)",
+      "Bash(npx*)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git show*)",
+      "Bash(git add*)",
+      "Bash(git commit*)",
+      "Bash(git checkout*)",
+      "Bash(git switch*)",
+      "Bash(git branch*)",
+      "Bash(git stash*)",
+      "Bash(git fetch*)",
+      "Bash(git pull*)"
+    ],
+    "deny": [
+      "Edit(//workspace/.devcontainer/**)",
+      "Edit(//workspace/.claude/**)",
+      "Edit(//workspace/.github/workflows/**)",
+      "Edit(//workspace/.github/CODEOWNERS)",
+      "Edit(//workspace/CLAUDE.md)",
+      "Edit(//workspace/.mcp.json)",
+      "Bash(git push --force*)"
+    ]
+  }
+}

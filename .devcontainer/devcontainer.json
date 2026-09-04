@@ -1,0 +1,31 @@
+{
+  "name": "agent-sandbox",
+
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+
+  // Mount ONLY this repo. Never open the parent directory in this container.
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+  "workspaceFolder": "/workspace",
+
+  "mounts": [
+    "source=claude-config-${devcontainerId},target=/home/node/.claude,type=volume",
+    "source=pnpm-store-${devcontainerId},target=/home/node/.local/share/pnpm/store,type=volume"
+  ],
+
+  "containerEnv": {
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+    "ENABLE_CLAUDEAI_MCP_SERVERS": "false"
+  },
+
+  // The PAT goes in remoteEnv, not containerEnv: it stays out of container
+  // metadata (docker inspect) and picks up a rotated token on reconnect
+  // rather than needing a rebuild. Resolved on the HOST from the environment
+  // of whatever launched VS Code — this repo is public, never a literal here.
+  "remoteEnv": {
+    "GH_TOKEN": "${localEnv:AGENT_GH_TOKEN}"
+  },
+
+  "remoteUser": "node"
+}

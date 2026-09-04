@@ -1,0 +1,49 @@
+name: leash-guard
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  leash-guard:
+    name: leash-guard
+    runs-on: ubuntu-latest
+    steps:
+      # No third-party actions on purpose: this workflow gates changes to the
+      # agent's constraints, so it should not itself depend on code from
+      # outside GitHub. `gh` is preinstalled on the runner.
+      - name: Fail if agent-constraint files changed
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+          LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+        run: |
+          set -euo pipefail
+
+          # Escape hatch for your own deliberate leash changes. The agent
+          # cannot apply labels: `gh pr edit` is not on its allow list.
+          if [[ ",${LABELS}," == *",leash-change,"* ]]; then
+            echo "Label 'leash-change' present; guard intentionally skipped."
+            exit 0
+          fi
+
+          changed="$(gh pr diff "$PR_NUMBER" --repo "$REPO" --name-only)"
+
+          protected='^(\.devcontainer/|\.claude/|\.github/|CLAUDE\.md$|\.mcp\.json$)'
+          hits="$(printf '%s\n' "$changed" | grep -E "$protected" || true)"
+
+          if [[ -n "$hits" ]]; then
+            echo "::error::This PR modifies files that constrain the agent:"
+            printf '  %s\n' $hits
+            echo ""
+            echo "If this change is intentional, add the 'leash-change' label"
+            echo "and re-run — but read every line of the diff first."
+            exit 1
+          fi
+
+          echo "No agent-constraint files touched."
