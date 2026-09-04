@@ -3,6 +3,11 @@ name: leash-guard
 on:
   pull_request:
     branches: [main]
+    # 'labeled'/'unlabeled' are NOT in the default trigger set (opened,
+    # synchronize, reopened). Without them, adding the escape-hatch label
+    # does nothing: a re-run replays the original payload, which has no
+    # label, so the guard fails again identically.
+    types: [opened, synchronize, reopened, labeled, unlabeled]
 
 permissions:
   contents: read
@@ -25,8 +30,9 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Escape hatch for your own deliberate leash changes. The agent
-          # cannot apply labels: `gh pr edit` is not on its allow list.
+          # Escape hatch for deliberate leash changes. The agent cannot apply
+          # labels: `gh pr edit` is not on its allow list, and the minimal
+          # image has no gh at all.
           if [[ ",${LABELS}," == *",leash-change,"* ]]; then
             echo "Label 'leash-change' present; guard intentionally skipped."
             exit 0
@@ -34,15 +40,15 @@ jobs:
 
           changed="$(gh pr diff "$PR_NUMBER" --repo "$REPO" --name-only)"
 
-          protected='^(\.devcontainer/|\.claude/|\.github/|CLAUDE\.md$|\.mcp\.json$)'
+          protected='^(\.devcontainer/|\.claude/|\.vscode/|\.github/|CLAUDE\.md$|\.mcp\.json$)'
           hits="$(printf '%s\n' "$changed" | grep -E "$protected" || true)"
 
           if [[ -n "$hits" ]]; then
             echo "::error::This PR modifies files that constrain the agent:"
             printf '  %s\n' $hits
             echo ""
-            echo "If this change is intentional, add the 'leash-change' label"
-            echo "and re-run — but read every line of the diff first."
+            echo "If this change is intentional, add the 'leash-change' label."
+            echo "Adding the label re-runs this check automatically."
             exit 1
           fi
 
