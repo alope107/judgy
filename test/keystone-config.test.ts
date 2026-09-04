@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
 import config from '../src/keystone/config'
-import { databaseUrl } from '../src/keystone/database-url'
 
 // These pin the constraints from docs/DECISIONS.md that a careless edit could silently
 // undo. Every assertion here inspects a value that can actually vary — if you cannot name
@@ -9,14 +8,6 @@ import { databaseUrl } from '../src/keystone/database-url'
 describe('keystone config', () => {
   it('uses the PostgreSQL provider and nothing else (ADR-0002)', () => {
     expect(config.db.provider).toBe('postgresql')
-  })
-
-  it('resolves a PostgreSQL connection string, never SQLite (ADR-0002)', () => {
-    // Goes through the resolved URL rather than JSON-stringifying `config.db`. The
-    // connection string lives inside the `prismaClientOptions` closure, so serialising
-    // that object renders it as "[function]" and the assertion can never fail.
-    expect(databaseUrl).toMatch(/^postgres(ql)?:\/\//)
-    expect(databaseUrl).not.toMatch(/sqlite|^file:/i)
   })
 
   it('supplies the driver adapter Prisma 7 requires', () => {

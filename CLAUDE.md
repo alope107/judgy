@@ -83,9 +83,9 @@ lands it needs to be an explicit step for the same reason.
 
 `npm run dev` applies migrations before starting. `--no-db-push` deliberately never
 touches the schema (ADR-0002), so without the migrate step a fresh clone starts against a
-database with no tables. No `.env` is required locally: the connection string falls back to
-the throwaway credential in `docker-compose.yml`, and **says so on stderr** when it does.
-Outside development a missing `DATABASE_URL` throws rather than falling back.
+database with no tables. A `.env` is required for local development: copy `.env.example` to
+`.env` before running `npm run dev`. A missing or empty `DATABASE_URL` fails to start in
+all environments.
 
 TypeScript runs in strict mode. Keystone generates types from the list schema — use them.
 Do not add `any`, `@ts-ignore`, or `@ts-expect-error` to get past a type error; the type
@@ -107,11 +107,10 @@ than a crash: it passes review, ships, and surfaces later as corrupted data — 
 project the corrupted thing is a student's keystroke history, which cannot be regenerated.
 Anything that cannot do its job must say so and stop.
 
-- **No silent fallbacks.** If a required input is missing, fail with a message naming what
-  was missing and what was expected. A default that quietly stands in for real
-  configuration hides the misconfiguration until it is expensive. Where a convenience
-  default genuinely is correct — local development with no `.env` — it must announce
-  itself, and it must not apply in production.
+- **No silent fallbacks.** If a required input is missing or wrong, fail with a message
+  naming what was missing and what was expected. Never fall back to a default, announce it,
+  or continue with degraded behavior. A default that stands in for real configuration hides
+  the misconfiguration until it is expensive to fix.
 - **No swallowed errors.** No empty `catch`, no `catch` that logs and continues as though
   nothing happened, no `|| true`, no `2>/dev/null` on a command whose failure matters. If
   you catch, either handle it meaningfully or rethrow with context.

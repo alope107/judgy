@@ -25,36 +25,22 @@ describe('database URL resolution', () => {
     expect(databaseUrl).toBe('postgres://someone@db.example:5432/judgy')
   })
 
-  it('refuses to fall back in production, and says why', async () => {
+  it('throws when DATABASE_URL is unset, regardless of environment', async () => {
     await expect(
       loadWithEnv({ DATABASE_URL: undefined, NODE_ENV: 'production' })
     ).rejects.toThrow(/DATABASE_URL is not set/)
+
+    await expect(
+      loadWithEnv({ DATABASE_URL: undefined, NODE_ENV: 'development' })
+    ).rejects.toThrow(/DATABASE_URL is not set/)
   })
 
-  it('falls back in development but announces it on stderr', async () => {
-    // The point of this case is the warning, not the value. A fallback nobody can see is
-    // the failure mode this whole arrangement exists to prevent.
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-
-    const { databaseUrl } = await loadWithEnv({
-      DATABASE_URL: undefined,
-      NODE_ENV: 'development',
-    })
-
-    expect(databaseUrl).toBe('postgres://judgy:judgy@localhost:5432/judgy')
-    expect(warn).toHaveBeenCalledTimes(1)
-    expect(warn.mock.calls[0]?.[0]).toMatch(/DATABASE_URL is not set/)
-  })
-
-  it('treats a blank DATABASE_URL as unset rather than connecting to nothing', async () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-
-    const { databaseUrl } = await loadWithEnv({
-      DATABASE_URL: '   ',
-      NODE_ENV: 'development',
-    })
-
-    expect(databaseUrl).toBe('postgres://judgy:judgy@localhost:5432/judgy')
-    expect(warn).toHaveBeenCalledTimes(1)
+  it('throws when DATABASE_URL is blank or whitespace-only', async () => {
+    await expect(
+      loadWithEnv({
+        DATABASE_URL: '   ',
+        NODE_ENV: 'development',
+      })
+    ).rejects.toThrow(/DATABASE_URL is not set/)
   })
 })

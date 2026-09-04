@@ -12,11 +12,10 @@ actually been run.
 ```
 docker compose up -d    # PostgreSQL
 npm install
+cp .env.example .env    # populate with your database connection details
 npm run dev             # applies migrations, then Keystone at http://localhost:3000
 ```
 
-No `.env` is needed for local development — the connection string falls back to the
-throwaway credential in `docker-compose.yml`. Copy `.env.example` to `.env` to override it.
 `npm run check` (typecheck + format + test) is the definition of green.
 
 ## Verified version set
