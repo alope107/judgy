@@ -4,27 +4,13 @@
     "failIfUnavailable": true,
     "allowUnsandboxedCommands": false,
     "autoAllowBashIfSandboxed": true,
-    "enableWeakerNestedSandbox": true,
-    "network": {
-      "strictAllowlist": true,
-      "allowedDomains": [
-        "registry.npmjs.org",
-        "github.com",
-        "api.github.com",
-        "codeload.github.com",
-        "*.githubusercontent.com"
-      ]
-    }
+    "enableWeakerNestedSandbox": true
   },
   "permissions": {
     "disableBypassPermissionsMode": "disable",
     "deny": [
-      "Edit(//workspace/.devcontainer/**)",
       "Bash(git push --force*)",
       "Bash(git push -f*)"
-    ],
-    "ask": [
-      "Bash(git push*)"
     ]
   }
 }
