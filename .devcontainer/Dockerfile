@@ -5,6 +5,13 @@ FROM node:${NODE_VERSION}-bookworm-slim
 ARG CLAUDE_CODE_VERSION=2.1.260
 ARG PNPM_VERSION=11.25.0
 
+# Must equal the `playwright` / `@playwright/test` version pinned in the repo's
+# package.json. Playwright resolves browsers by an exact build number derived
+# from its own version, so a mismatch fails with "Executable doesn't exist at
+# /ms-playwright/chromium-<build>/...". That error is loud and names the path,
+# which is the only reason this coupling is tolerable — but bump both together.
+ARG PLAYWRIGHT_VERSION=1.62.1
+
 ARG GIT_USER_NAME="Auberon López (agent)"
 ARG GIT_USER_EMAIL="9411388+alope107@users.noreply.github.com"
 
@@ -24,6 +31,29 @@ RUN npm install -g \
       @anthropic-ai/claude-code@${CLAUDE_CODE_VERSION} \
       pnpm@${PNPM_VERSION} \
     && npm cache clean --force
+
+# Playwright: Chromium plus its system libraries, baked into the image.
+#
+# docs/BOOTSTRAP.md Task 1 specifies the convergence fuzz harness runs on
+# Playwright with headless Chromium, so this is a hard requirement, not a
+# convenience. Neither half can be left to `npm install` in the workspace:
+#
+#   - This is bookworm-slim. Chromium needs ~19 shared libraries it does not
+#     ship (libglib-2.0, libnss3, libX11, libgbm, libasound, …). Installing
+#     them needs root, and there is deliberately no sudo in this image, so it
+#     has to happen here at build time.
+#   - /home/node/.npmrc sets ignore-scripts=true (see the note at the end of
+#     this file), so Playwright's postinstall browser download never runs.
+#     Baking the browsers in is the only thing that reliably works.
+#
+# PLAYWRIGHT_BROWSERS_PATH moves the browsers out of root's ~/.cache to a
+# shared path, and a+rX makes them readable by the node user. Only chromium is
+# installed — Firefox and WebKit would roughly double the layer for browsers
+# Task 1 does not ask for.
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+RUN npx --yes playwright@${PLAYWRIGHT_VERSION} install --with-deps chromium \
+    && chmod -R a+rX /ms-playwright \
+    && rm -rf /var/lib/apt/lists/* /root/.npm
 
 RUN mkdir -p /home/node/.claude /home/node/.local/share/pnpm/store /workspace \
     && chown -R node:node /home/node /workspace

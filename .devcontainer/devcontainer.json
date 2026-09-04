@@ -35,6 +35,15 @@
   // below is still `node`, so the shell, Claude, and postCreate are unchanged.
   "containerUser": "root",
 
+  // Docker gives a container 64 MB of /dev/shm. Chromium uses shared memory for
+  // renderer surfaces and crashes past that — as a tab that dies mid-run, not as
+  // a clear error, which is exactly the silent failure CLAUDE.md forbids. The
+  // Task 1 fuzz harness drives two live Monaco editors at once, so it will get
+  // there. Playwright's own docs raise this or pass --disable-dev-shm-usage;
+  // raising it is better, since the flag redirects shared memory to /tmp and
+  // changes what the harness is actually exercising.
+  "runArgs": ["--shm-size=1g"],
+
   // Mount ONLY this repo. Never open the parent directory in this container.
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
   "workspaceFolder": "/workspace",
