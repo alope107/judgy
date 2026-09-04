@@ -5,12 +5,12 @@
     "dockerfile": "Dockerfile"
   },
 
-  // Docker Desktop's linuxkit kernel blocks unshare(CLONE_NEWUSER) via the
-  // default seccomp profile, so bubblewrap cannot create a namespace and the
-  // sandbox fails to start. With failIfUnavailable + allowUnsandboxedCommands
-  // false that is a hard fail: every Bash command dies. Relaxing seccomp
-  // restores the agent's own sandbox, which is what enforces the boundary.
-  "runArgs": ["--security-opt", "seccomp=unconfined"],
+  // seccomp=unconfined used to be required here: the agent sandbox needed
+  // bubblewrap, which needs unshare(CLONE_NEWUSER), which Docker Desktop's
+  // default profile blocks on the linuxkit kernel. With the sandbox gone
+  // nothing needs that syscall, so the container runs under Docker's default
+  // seccomp profile again. Re-add it if a container runtime is ever installed
+  // in here, since rootless engines need user namespaces.
 
   // Mount ONLY this repo. Never open the parent directory in this container.
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
