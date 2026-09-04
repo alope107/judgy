@@ -18,7 +18,6 @@
       "Bash(git pull*)"
     ],
     "deny": [
-      "Edit(//workspace/.devcontainer/**)",
       "Edit(//workspace/.claude/**)",
       "Edit(//workspace/.github/workflows/**)",
       "Edit(//workspace/.github/CODEOWNERS)",
