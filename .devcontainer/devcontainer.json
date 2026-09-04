@@ -35,14 +35,27 @@
   // below is still `node`, so the shell, Claude, and postCreate are unchanged.
   "containerUser": "root",
 
-  // Docker gives a container 64 MB of /dev/shm. Chromium uses shared memory for
-  // renderer surfaces and crashes past that — as a tab that dies mid-run, not as
-  // a clear error, which is exactly the silent failure CLAUDE.md forbids. The
-  // Task 1 fuzz harness drives two live Monaco editors at once, so it will get
-  // there. Playwright's own docs raise this or pass --disable-dev-shm-usage;
-  // raising it is better, since the flag redirects shared memory to /tmp and
-  // changes what the harness is actually exercising.
-  "runArgs": ["--shm-size=1g"],
+  // Chromium uses shared memory for renderer surfaces. Docker gives a container
+  // 64 MB of /dev/shm, and past that Chromium kills renderers — surfacing as a
+  // tab that dies mid-run rather than as an error, which is the silent failure
+  // mode CLAUDE.md forbids. The Task 1 fuzz harness drives two live Monaco
+  // editors at once, so it will get there.
+  //
+  // Both flags address this by different routes, and neither is redundant:
+  //   --shm-size=1g  raises the limit on the container's own /dev/shm.
+  //   --ipc=host     is what Playwright's docs actually recommend, in those
+  //                  words: "Without it, Chromium can run out of memory and
+  //                  crash." They do not mention --shm-size at all.
+  //
+  // --ipc=host shares the host's IPC namespace, which is a real reduction in
+  // isolation and worth naming given how carefully the rest of this file avoids
+  // the host. The docker-in-docker feature below already declares
+  // `privileged: true`, so the marginal loss here is small — but if that ever
+  // changes, revisit this line rather than assuming it is free.
+  //
+  // Not used: --disable-dev-shm-usage. It redirects shared memory to /tmp and
+  // so changes what the harness is actually exercising.
+  "runArgs": ["--shm-size=1g", "--ipc=host"],
 
   // Mount ONLY this repo. Never open the parent directory in this container.
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
