@@ -1,12 +1,8 @@
-import 'dotenv/config'
-
 import { config } from '@keystone-6/core'
 import { PrismaPg } from '@prisma/adapter-pg'
 
+import { databaseUrl } from './database-url'
 import { lists } from './schema'
-
-const connectionString =
-  process.env.DATABASE_URL ?? 'postgres://judgy:judgy@localhost:5432/judgy'
 
 // Task 0 scaffolding only: an empty Keystone project on PostgreSQL, enough to prove the
 // version set in package.json actually assembles and that a list round-trips through the
@@ -26,7 +22,7 @@ export default config({
     // both fail here, the first at type-check and the second only at runtime.
     // The Prisma CLI reads its own connection string from prisma.config.ts for migrations.
     prismaClientOptions: () => ({
-      adapter: new PrismaPg({ connectionString }),
+      adapter: new PrismaPg({ connectionString: databaseUrl }),
     }),
 
     // ADR-0001: Keystone no longer creates or applies migrations; we drive Prisma

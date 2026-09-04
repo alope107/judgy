@@ -1,6 +1,6 @@
-import 'dotenv/config'
-
 import { defineConfig } from 'prisma/config'
+
+import { databaseUrl } from './src/keystone/database-url'
 
 // Prisma 7 requires this file; Keystone 8 will scaffold a default one at the repo root if
 // it is missing. Written by hand instead so the paths line up with `db.prismaSchemaPath`
@@ -11,7 +11,7 @@ export default defineConfig({
     path: 'src/keystone/migrations',
   },
   datasource: {
-    // Local development only. Never a production host (CLAUDE.md).
-    url: process.env.DATABASE_URL,
+    // Same URL the Keystone runtime uses. Local development only, never production.
+    url: databaseUrl,
   },
 })
