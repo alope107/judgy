@@ -58,6 +58,24 @@ violated by accident.
 
 Do not upgrade pinned versions as part of an unrelated task.
 
+### Versions are provisional — we are still forming the stack
+
+**Status: stack formation.** The exact pins above are there for reproducibility, not because
+any of them is settled. Through the bootstrap tasks a version is a starting point, and
+changing one deliberately — with a reason, and with `npm run check` green afterwards — is
+normal work rather than a violation. Task 0 already moved TypeScript 7 → 5.9.3 because
+`typescript-eslint` could not support 7, and that was the right call, not a concession.
+
+Two things this does **not** license. Do not drift a version incidentally while doing
+something else — that is what the rule above forbids, and it is what makes a bisect
+worthless. And do not treat a pin as free to change without saying so: name the version, the
+reason, and what you verified.
+
+**Before real student data exists, a dedicated task freezes this.** At that point every
+version gets locked, the ADRs that are still *Proposed* get promoted or superseded, and
+upgrades become a deliberate, tested change with its own branch. Until then, prefer
+"is this the right dependency?" over "is this the version we wrote down first?"
+
 ## Commands
 
 ```

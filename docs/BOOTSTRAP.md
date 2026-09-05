@@ -26,8 +26,13 @@ them to Accepted or supersedes them.
 - Reconcile the **Layout** and **Commands** sections of `CLAUDE.md` against what you
   actually created. Report every mismatch; do not silently adapt to it.
 
-**Done when:** `docker compose up -d && npm install && npm run dev` works from a clean
-clone, and the README records the exact version set that worked.
+**Done when:** `docker compose up -d && cp .env.example .env && npm install && npm run dev`
+works from a clean clone, and the README records the exact version set that worked.
+
+The `.env` step is not optional and is not a convenience. A missing `DATABASE_URL` fails to
+start in every environment rather than falling back to a default, because a fallback would
+quietly point the process at the wrong database and the damage would only surface later.
+See "Failures must be noisy" in `CLAUDE.md`.
 
 **Report explicitly:**
 - whether `y-monaco` 0.1.6 works against the current Monaco, and every console warning or
