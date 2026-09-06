@@ -7,7 +7,7 @@ the alternative.
 
 ## What this is
 
-A collaborative browser-based code editor for a college CS course. Students write Java.
+A collaborative browser-based code editor for a college CS course. Students write multiple languages including Java, Python, C++, and JS/HTML.
 Roughly 200 users, no more. Core features:
 
 - Real-time multi-user editing (Google-Docs style)
@@ -25,7 +25,6 @@ this and is wrong.
 These come from `docs/DECISIONS.md`. Restated here because they are the ones most often
 violated by accident.
 
-- **PostgreSQL only.** Never SQLite, not even for local development or tests.
 - **The `Y.Doc` is authoritative for live document text.** Keystone owns metadata and
   immutable submission snapshots. Nothing else writes live text. Enforcement is Keystone
   access control, not Admin UI field modes (ADR-0007).
@@ -90,7 +89,7 @@ npm run fuzz      # convergence fuzz harness; --seed N to reproduce a specific r
 docker compose up -d   # PostgreSQL
 ```
 
-`npm run check` is the definition of done. Not "the file I touched compiles."
+`npm run check` is required for a working solution.
 
 `npm run check` regenerates the Prisma client first. It has to: `src/keystone/types.ts` is
 committed and imports the generated client out of `generated/`, which is gitignored, so a
@@ -176,7 +175,6 @@ down at the end of the report instead.
 - **Never point at the production database or a production host.** 
 - **Never use real student code, submissions, or names** in fixtures, tests, or seed data.
   Generate synthetic Java. Prior-term submissions are education records.
-- **Never introduce SQLite**, including as a "faster test database."
 - **Never make a failure quiet.** No silent fallback for missing configuration, no
   swallowed exception, no assertion that cannot fail. See "Failures must be noisy".
 - **Never edit `docs/DECISIONS.md` in place.** It is append-only. Propose a new entry that
